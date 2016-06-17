@@ -59,12 +59,18 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import javax.annotation.CheckForNull;
 
 @ExportedBean(defaultVisibility = AbstractItem.VISIBILITY)
 public class Stage extends AbstractItem {
+
+    private static final Pattern MATCH_NONE_PATTERN = Pattern.compile(".^");
+
     private final List<Task> tasks;
+
+    private List<Task> tasks;
 
     private String version;
     private int row;
@@ -175,12 +181,14 @@ public class Stage extends AbstractItem {
     public static List<Stage> extractStages(AbstractProject firstProject, AbstractProject lastProject)
             throws PipelineException {
         Map<String, Stage> stages = newLinkedHashMap();
-        for (AbstractProject project : ProjectUtil.getAllDownstreamProjects(firstProject, lastProject).values()) {
-            Task task = Task.getPrototypeTask(project, project.getFullName().equals(firstProject.getFullName()));
-            /* if current project is last we need clean downStreamTasks*/
-            if (lastProject != null && project.getFullName().equals(lastProject.getFullName())) {
-                task.getDownstreamTasks().clear();
-            }
+        Pattern excludeJobsPattern = excludeJobsRegex == null ? MATCH_NONE_PATTERN : Pattern.compile(excludeJobsRegex);
+        for (AbstractProject project : ProjectUtil.getAllDownstreamProjects(firstProject, lastProject, excludeJobsRegex).values()) {
+                boolean isInitialTask = project.getFullName().equals(firstProject.getFullName());
+                Task task = Task.getPrototypeTask(project, isInitialTask, excludeJobsPattern);
+                /* if current project is last we need clean downStreamTasks*/
+                if (lastProject != null && project.getFullName().equals(lastProject.getFullName())) {
+                    task.getDownstreamTasks().clear();
+                }
 
             PipelineProperty property = (PipelineProperty) project.getProperty(PipelineProperty.class);
             if (property == null && project.getParent() instanceof AbstractProject) {
