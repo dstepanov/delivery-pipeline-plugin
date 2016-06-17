@@ -508,7 +508,8 @@ public class DeliveryPipelineView extends View {
     }
 
     private Component getComponent(String name, AbstractProject firstJob, AbstractProject lastJob,
-                                   boolean showAggregatedPipeline) throws PipelineException {
+                                   String excludeJobsRegex, boolean showAggregatedPipeline) throws PipelineException {
+
         Pipeline pipeline = Pipeline.extractPipeline(name, firstJob, lastJob, excludeJobsRegex);
         List<Pipeline> pipelines = new ArrayList<Pipeline>();
         if (showAggregatedPipeline) {
@@ -537,7 +538,7 @@ public class DeliveryPipelineView extends View {
             return;
         }
         for (RegExpSpec spec : regexpFirstJobs) {
-            Map<String, AbstractProject> regexpJobs = getProjects(spec.getRegexp());
+            Map<String, AbstractProject> regexpJobs = ProjectUtil.getProjects(spec.getRegexp());
             for (AbstractProject project : regexpJobs.values()) {
                 jobs.add((TopLevelItem) project);
             }
@@ -549,9 +550,9 @@ public class DeliveryPipelineView extends View {
             return;
         }
         for (ComponentSpec spec : componentSpecs) {
-            AbstractProject first = getProject(spec.getFirstJob(), getOwnerItemGroup());
-            AbstractProject last = getProject(spec.getLastJob(), getOwnerItemGroup());
-            Collection<AbstractProject<?, ?>> downstreamProjects = getAllDownstreamProjects(first, last, spec.getExcludeJobsRegex()).values();
+            AbstractProject first = ProjectUtil.getProject(spec.getFirstJob(), getOwnerItemGroup());
+            AbstractProject last = ProjectUtil.getProject(spec.getLastJob(), getOwnerItemGroup());
+            Collection<AbstractProject<?, ?>> downstreamProjects = ProjectUtil.getAllDownstreamProjects(first, last, spec.getExcludeJobsRegex()).values();
             for (AbstractProject project : downstreamProjects) {
                 jobs.add((TopLevelItem) project);
             }

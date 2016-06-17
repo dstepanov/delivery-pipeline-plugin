@@ -70,8 +70,6 @@ public class Stage extends AbstractItem {
 
     private final List<Task> tasks;
 
-    private List<Task> tasks;
-
     private String version;
     private int row;
     private int column;
@@ -178,8 +176,8 @@ public class Stage extends AbstractItem {
         return new Stage(name, tasks);
     }
 
-    public static List<Stage> extractStages(AbstractProject firstProject, AbstractProject lastProject)
-            throws PipelineException {
+    public static List<Stage> extractStages(AbstractProject firstProject, AbstractProject lastProject,
+                                            String excludeJobsRegex) throws PipelineException {
         Map<String, Stage> stages = newLinkedHashMap();
         Pattern excludeJobsPattern = excludeJobsRegex == null ? MATCH_NONE_PATTERN : Pattern.compile(excludeJobsRegex);
         for (AbstractProject project : ProjectUtil.getAllDownstreamProjects(firstProject, lastProject, excludeJobsRegex).values()) {
